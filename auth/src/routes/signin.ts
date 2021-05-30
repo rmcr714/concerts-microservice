@@ -39,7 +39,8 @@ router.post(
       password
     )
 
-    if (!password) {
+    if (!passwordMatch) {
+      console.log('NOt correct password')
       throw new BadErrorRequest('Invalid Credentials')
     }
 
