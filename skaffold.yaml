@@ -1,18 +1,26 @@
 apiVersion: skaffold/v2alpha3
 kind: Config
-deploy: 
+deploy:
   kubectl:
-    manifests: 
+    manifests:
       - ./infra/k8s/*
-build: 
-  local: 
+build:
+  local:
     push: false
-  artifacts: 
+  artifacts:
     - image: rmcr714/auth
       context: auth
       docker:
         dockerfile: Dockerfile
-      sync: 
-        manual: 
+      sync:
+        manual:
           - src: 'src/**/*.ts'
-            dest: .   
+            dest: .
+    - image: rmcr714/concert-microservices-client
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '**/*.js'
+            dest: .
