@@ -5,8 +5,9 @@ const start = async () => {
   if (!process.env.JWT_KEY) {
     throw new Error('JWT_KEY is undefined')
   }
+
   if (!process.env.MONGO_URI) {
-    throw new Error('JWT_KEY is undefined')
+    throw new Error('MONGO_URL  is undefined')
   }
 
   try {
