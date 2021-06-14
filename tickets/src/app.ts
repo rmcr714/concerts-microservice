@@ -17,6 +17,7 @@ import cookieSession from 'cookie-session'
 const app = express()
 
 app.set('trust proxy', true)
+// @ts-ignore
 app.use(json())
 
 app.use(

@@ -6,7 +6,14 @@ import {
   NotFoundError,
   requireAuth,
   NotAuthorizedError,
+  DatabaseConnectionError,
+  Subjects,
 } from '@concertmicroservice/common'
+import { TicketUpdatedPublisher } from '../events/publishers/ticket-updated-publisher'
+import { natsWrapper } from '../nats-wrapper'
+import mongoose from 'mongoose' //
+import { UserEvent } from '../models/events' //
+import InternalEventEmitter from '../events/internalEventEmitter' //
 
 const router = express.Router()
 
@@ -30,10 +37,43 @@ router.put(
     if (ticket.userId !== req.currentUser!.id) {
       throw new NotAuthorizedError()
     }
+    const SESSION = await mongoose.startSession()
+    try {
+      await SESSION.startTransaction()
+      ticket.set({ ...req.body })
+      await ticket.save()
 
-    ticket.set({ ...req.body })
-    await ticket.save()
-    res.send(ticket)
+      const event = UserEvent.build({
+        //
+        name: Subjects.TicketUpdated, //
+        data: {
+          //
+          id: ticket.id, //
+          title: ticket.title, //
+          price: ticket.price, //
+          userId: ticket.userId, //
+        },
+      })
+
+      await event.save() //
+
+      // new TicketUpdatedPublisher(natsWrapper.client).publish({
+      //   id: ticket.id,
+      //   title: ticket.title,
+      //   price: ticket.price,
+      //   userId: ticket.userId,
+      // })
+      await SESSION.commitTransaction() //
+      res.send(ticket)
+      InternalEventEmitter.emitNatsEvent()
+    } catch (err) {
+      await SESSION.abortTransaction() //
+      throw new DatabaseConnectionError()
+    } finally {
+      //
+      // FINALIZE SESSION
+      SESSION.endSession() //
+    }
   }
 )
 
