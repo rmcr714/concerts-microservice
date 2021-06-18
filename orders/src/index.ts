@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 import { app } from './app'
 import { natsWrapper } from './nats-wrapper'
-import { TicketEventHandler } from './events/publishers/ticket-publish-event-handler' //
-import { UserEvent } from './models/events' //
-import internalEventEmitter from './events/internalEventEmitter' //
-import cron from 'node-cron' //
+// import { TicketEventHandler } from './events/publishers/ticket-publish-event-handler' //
+// import { UserEvent } from './models/events' //
+// import internalEventEmitter from './events/internalEventEmitter' //
+// import cron from 'node-cron' //
 
 const start = async () => {
   if (!process.env.JWT_KEY) {
@@ -40,21 +40,21 @@ const start = async () => {
     process.on('SIGTERM', () => natsWrapper.client.close())
 
     //capture events when nats in down
-    const ticketEventHandler = new TicketEventHandler(UserEvent)
-    const cronjob = cron.schedule('*/9 * * * *', async () => {
-      await ticketEventHandler.handle()
-    })
+    // const ticketEventHandler = new TicketEventHandler(UserEvent)
+    // const cronjob = cron.schedule('*/2 * * * *', async () => {
+    //   await ticketEventHandler.handle()
+    // })
     // Attach Listener for InternalEvents
-    internalEventEmitter.on('newNatsEvent', async () => {
-      try {
-        cronjob.stop()
-        await ticketEventHandler.handle()
-      } catch (e) {
-        console.log(e.message)
-      } finally {
-        cronjob.start()
-      }
-    })
+    // internalEventEmitter.on('newNatsEvent', async () => {
+    //   try {
+    //     cronjob.stop()
+    //     await ticketEventHandler.handle()
+    //   } catch (e) {
+    //     console.log(e.message)
+    //   } finally {
+    //     cronjob.start()
+    //   }
+    // })
 
     //connect to the kubernetes mongo ticket pod (Not using persistence volume ,will use it in production)
     await mongoose.connect(process.env.MONGO_URI, {
