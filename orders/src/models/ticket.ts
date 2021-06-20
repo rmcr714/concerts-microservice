@@ -3,6 +3,7 @@ import { Order } from './order'
 import { OrderStatus } from '@concertmicroservice/common'
 
 interface TicketAttrs {
+  id: string
   title: string
   price: number
 }
@@ -41,7 +42,7 @@ const ticketSchema = new mongoose.Schema(
 
 //add a method to ticket model
 ticketSchema.statics.build = (attrs: TicketAttrs) => {
-  return new Ticket(attrs)
+  return new Ticket({ _id: attrs.id, title: attrs.title, price: attrs.price })
 }
 
 //add a method on ticket document
