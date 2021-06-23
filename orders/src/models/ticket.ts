@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import { Order } from './order'
 import { OrderStatus } from '@concertmicroservice/common'
+import { updateIfCurrentPlugin } from 'mongoose-update-if-current'
 
 interface TicketAttrs {
   id: string
@@ -11,11 +12,13 @@ interface TicketAttrs {
 export interface TicketDoc extends mongoose.Document {
   title: string
   price: number
+  version: number //same for achieving the optimsitic concurrency control
   isReserved(): Promise<boolean> //assigning a method to a document
 }
 
 interface TicketModel extends mongoose.Model<TicketDoc> {
   build(attrs: TicketAttrs): TicketDoc
+  // findByEvent(event:{id:string,version:number}):Promise<TicketDoc|null>
 }
 
 const ticketSchema = new mongoose.Schema(
@@ -39,6 +42,9 @@ const ticketSchema = new mongoose.Schema(
     },
   }
 )
+
+ticketSchema.set('versionKey', 'version')
+ticketSchema.plugin(updateIfCurrentPlugin) //for achieving the optimistic concurrency control using version
 
 //add a method to ticket model
 ticketSchema.statics.build = (attrs: TicketAttrs) => {
