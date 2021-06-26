@@ -3,10 +3,12 @@ import request from 'supertest'
 import { app } from '../../app'
 import { Order } from '../../models/order'
 import { Ticket } from '../../models/ticket'
+import mongoose from 'mongoose'
 
 it('marks an order as cancelled', async () => {
   //create a ticket with the ticket model
-  const ticket = Ticket.build({ title: 'Green day', price: 20 })
+  //@ts-ignore
+  const ticket = Ticket.build({ id:new mongoose.Types.ObjectId().toHexString(),title: 'Green day', price: 20 })
   await ticket.save()
 
   const user = global.signin()

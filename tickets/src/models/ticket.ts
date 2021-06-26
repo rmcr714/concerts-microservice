@@ -11,6 +11,7 @@ interface TicketDoc extends mongoose.Document {
   title: string
   price: number
   userId: string
+  orderId?: string
   version: number //we renamed __v to 'version' thats why we need to put this
 }
 
@@ -23,6 +24,7 @@ const ticketSchema = new mongoose.Schema(
     title: { type: String, required: true },
     price: { type: Number, required: true },
     userId: { type: String, required: true },
+    orderId: { type: String },
   },
   {
     toJSON: {

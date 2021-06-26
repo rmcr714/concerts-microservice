@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { app } from '../../app'
 import mongoose from 'mongoose'
+import { Ticket } from '../../models/ticket'
 
 it('return 404 if the given ticekt id doesnt exist', async () => {
   const id = new mongoose.Types.ObjectId().toHexString()
@@ -78,4 +79,22 @@ it('updates the ticket if all the details are correct', async () => {
     .send({})
 
   expect(ticketResponse.body.title).toEqual('gta')
+})
+
+it('rejects a ticket if it is reserved', async () => {
+  const cookie = global.signin()
+  const response = await await request(app)
+    .post('/api/tickets')
+    .set('Cookie', cookie)
+    .send({ title: 'asfadsf', price: 20 })
+
+  const ticket = await Ticket.findById(response.body.id)
+  ticket!.set({ orderId: mongoose.Types.ObjectId().toHexString() })
+  await ticket!.save()
+
+  await request(app)
+    .put(`/api/tickets/${response.body.id}`)
+    .set('Cookie', cookie)
+    .send({ title: 'gta', price: 20 })
+    .expect(400)
 })

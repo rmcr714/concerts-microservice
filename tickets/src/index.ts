@@ -5,6 +5,8 @@ import { TicketEventHandler } from './events/publishers/ticket-publish-event-han
 import { UserEvent } from './models/events' //
 import internalEventEmitter from './events/internalEventEmitter' //
 import cron from 'node-cron' //
+import { OrderCreatedListener } from './events/listeners/order-created-listener'
+import { OrderCancelledListener } from './events/listeners/order-cancelled-listener'
 
 const start = async () => {
   if (!process.env.JWT_KEY) {
@@ -55,6 +57,10 @@ const start = async () => {
         cronjob.start()
       }
     })
+
+    //listeners to listen for order created events and cancelled events
+    new OrderCreatedListener(natsWrapper.client).listen()
+    new OrderCancelledListener(natsWrapper.client).listen()
 
     //connect to the kubernetes mongo ticket pod (Not using persistence volume ,will use it in production)
     await mongoose.connect(process.env.MONGO_URI, {

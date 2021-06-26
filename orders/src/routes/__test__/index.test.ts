@@ -1,14 +1,18 @@
 import request from 'supertest'
 import { app } from '../../app'
 import { Ticket } from '../../models/ticket'
+import mongoose from 'mongoose'
 
 it('fetches orders for a particular user', async () => {
   //create three tickets
-  const ticket1 = await Ticket.build({ title: 'green day', price: 20 })
+  //@ts-ignore
+  const ticket1 = await Ticket.build({id:new mongoose.Types.ObjectId().toHexString(), title: 'green day', price: 20 })
   await ticket1.save()
-  const ticket2 = await Ticket.build({ title: 'Likin park', price: 30 })
+  //@ts-ignore
+  const ticket2 = await Ticket.build({id:new mongoose.Types.ObjectId().toHexString(), title: 'Likin park', price: 30 })
   await ticket2.save()
-  const ticket3 = await Ticket.build({ title: 'foo fighters', price: 20 })
+  //@ts-ignore
+  const ticket3 = await Ticket.build({id:new mongoose.Types.ObjectId().toHexString(), title: 'foo fighters', price: 20 })
   await ticket3.save()
 
   const userOne = global.signin()
