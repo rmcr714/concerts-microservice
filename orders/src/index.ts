@@ -7,6 +7,7 @@ import { OrderEventHandler } from './events/publisher/order-publish-event-handle
 import { OrderEvent } from './models/events' //
 import internalEventEmitter from './events/internalEventEmitter' //
 import cron from 'node-cron' //
+import { ExpirationCompleteListener } from './events/listeners/expiration-complete-listener'
 
 const start = async () => {
   if (!process.env.JWT_KEY) {
@@ -61,6 +62,7 @@ const start = async () => {
     //listeners to listen for ticket created events
     new TicketCreatedListener(natsWrapper.client).listen()
     new TicketUpdatedListener(natsWrapper.client).listen()
+    new ExpirationCompleteListener(natsWrapper.client).listen()
 
     //connect to the kubernetes mongo ticket pod (Not using persistence volume ,will use it in production)
     await mongoose.connect(process.env.MONGO_URI, {
