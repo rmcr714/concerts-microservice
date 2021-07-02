@@ -1,14 +1,8 @@
 import mongoose from 'mongoose'
 import { app } from './app'
 import { natsWrapper } from './nats-wrapper'
-import { TicketCreatedListener } from './events/listeners/ticket-created-listener'
-import { TicketUpdatedListener } from './events/listeners/ticket-updated-listener'
-import { OrderEventHandler } from './events/publisher/order-publish-event-handler' //
-import { OrderEvent } from './models/events' //
-import internalEventEmitter from './events/internalEventEmitter' //
-import cron from 'node-cron' //
-import { ExpirationCompleteListener } from './events/listeners/expiration-complete-listener'
-import { PaymentCreatedListener } from './events/listeners/payment-created-listener'
+import { OrderCreatedListener } from './events/listeners/order-created-listener'
+import { OrderCancelledListener } from './events/listeners/order-cancelled-listener'
 
 const start = async () => {
   if (!process.env.JWT_KEY) {
@@ -43,28 +37,9 @@ const start = async () => {
     process.on('SIGINT', () => natsWrapper.client.close())
     process.on('SIGTERM', () => natsWrapper.client.close())
 
-    //capture events when nats in down
-    const orderEventHandler = new OrderEventHandler(OrderEvent)
-    const cronjob = cron.schedule('*/2 * * * *', async () => {
-      await orderEventHandler.handle()
-    })
-    // Attach Listener for InternalEvents
-    internalEventEmitter.on('newNatsEvent', async () => {
-      try {
-        cronjob.stop()
-        await orderEventHandler.handle()
-      } catch (e) {
-        console.log(e.message)
-      } finally {
-        cronjob.start()
-      }
-    })
-
-    //listeners to listen for ticket created events
-    new TicketCreatedListener(natsWrapper.client).listen()
-    new TicketUpdatedListener(natsWrapper.client).listen()
-    new ExpirationCompleteListener(natsWrapper.client).listen()
-    new PaymentCreatedListener(natsWrapper.client).listen()
+    //listening for order created and cancelled events
+    new OrderCreatedListener(natsWrapper.client).listen()
+    new OrderCancelledListener(natsWrapper.client).listen()
 
     //connect to the kubernetes mongo ticket pod (Not using persistence volume ,will use it in production)
     await mongoose.connect(process.env.MONGO_URI, {
