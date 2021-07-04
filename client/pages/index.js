@@ -1,27 +1,64 @@
-import axios from 'axios'
-import BuildClient from '../api/build-client'
+import Link from 'next/link'
 
-const LandingPage = ({ currentUser }) => {
-  console.log(currentUser)
-  return currentUser ? (
-    <h4>youre signed in as {currentUser.email}</h4>
-  ) : (
-    <h4>youre not signed in</h4>
+const LandingPage = ({ currentUser, tickets }) => {
+  return (
+    <div className='container-fluid'>
+      <div
+        id='carouselContent'
+        className='carousel slide mt-1'
+        data-ride='carousel'
+        style={{ backgroundColor: 'black' }}
+      >
+        <div className='carousel-inner' role='listbox'>
+          <div
+            className='carousel-item active  p-4 text-center'
+            style={{ color: 'white' }}
+          >
+            <h1>Concertify!</h1>
+            <br />
+            <br />
+            <h4>The Best Tickets at the cheapest prices</h4>
+          </div>
+        </div>
+        <br />
+        <br />
+        <br />
+        <br />
+      </div>
+      <br />
+      <br />
+      <h3>All available Tickets</h3>
+      <div className='row'>
+        {tickets.map((ticket) => (
+          <div className='col-md-4'>
+            <div className='card mb-4'>
+              <img
+                className='card-img-top'
+                src='https://pngimg.com/uploads/guitar/guitar_PNG3374.png'
+                style={{ height: '150px', objectFit: 'cover' }}
+                alt='Card image cap'
+              />
+              <div className='card-body'>
+                <h5 className='card-title'>{ticket.title}</h5>
+                <p className='card-text'>Rs: {ticket.price}</p>
+                <Link href={`/tickets/${ticket.id}`}>
+                  <a className='btn btn-primary'>Purchase</a>
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
 //getInital props is used for server side rendering , normal axios request are made by browser but the request inside this block are made in the next server at the time of processing
 //improves performance
-LandingPage.getInitialProps = async (context) => {
-  //this request will be done on server side, so we need to provide the address of the ingress service . In normal react app,
-  //we send html to browser and browser makes request and populates the html with data returned from node backend,but in this
-  //the request will be processed in next js pod in our cluser(one of the benefits of next js).But inside that pod we need to tell
-  //it to go to the ingress service so that it could take the request to the auth or any other pod and then return the data. Because of
-  //all this the domain will be of the ingress service and a little weird(learn this we just have to change the domain a little bit)
+LandingPage.getInitialProps = async (context, client, currentUser) => {
+  const { data } = await client.get('/api/tickets')
 
-  const { data } = await BuildClient(context).get('/api/users/currentuser') //we are creating a custom axios in buildrequest file and using it here
-
-  return data
+  return { tickets: data }
 }
 
 export default LandingPage
